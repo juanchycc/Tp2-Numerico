@@ -9,7 +9,7 @@ def leer_archivo():
 		for linea in file.readlines():      
 			linea = linea.split()
 			temperatura.append(float(linea[0]))
-			variacion_iodo.append(float(linea[1]))
+			variacion_iodo.append(float(linea[1]) / 1000 ) #cambio de unidad
 			cantidad_elementos += 1
 		
 
@@ -30,8 +30,6 @@ def producto_vectorial(primer_vector,segundo_vector,cantidad_elementos):
 	for i in range(cantidad_elementos):
 		aux += (primer_vector[i]*segundo_vector[i])
 	return aux
-
-
 
 def ajuste_lineal(temperatura,variacion_iodo,cantidad_elementos):
 	fi_cero = []
@@ -60,13 +58,13 @@ def ajuste_lineal(temperatura,variacion_iodo,cantidad_elementos):
 
 	b = ( matriz[1][2] / matriz[1][1] )
 	a = ( ( matriz[0][2] - ( b * matriz[0][1])) / matriz[0][0] )
-
 	#calculo el error
 	error = 0
 	for i in range(cantidad_elementos):
 		aux = ( variacion_iodo[i] - ( a + ( b * temperatura[i] ) ) )
 		error += ( aux * aux )
 
+	print(error)
 	return error
 
 def ajuste_polinomial(temperatura,variacion_iodo,cantidad_elementos):
@@ -123,6 +121,7 @@ def ajuste_polinomial(temperatura,variacion_iodo,cantidad_elementos):
 		aux = ( variacion_iodo[i] - ( a + ( b * temperatura[i] ) + ( c * fi_dos[i] ) ) )
 		error += ( aux * aux )
 
+	print(error)	
 	return error
 
 #linealiza como ln( 1/SI - 1 ) = ( ln(a) . 1 ) - (b . T) --> no funciona, por el logaritmo con negativo
@@ -156,7 +155,6 @@ def ajuste_logistico(temperatura,variacion_iodo,cantidad_elementos):
 
 	# ln(a) = c0 --> a = exp(c0)
 	a =  np.e**c0
-
 	error = 0
 	for i in range(cantidad_elementos):
 		aux = ( variacion_iodo[i] - ( 1 / ( 1 + ( a * ( np.e**(-b*temperatura[i])))) ) )
@@ -208,7 +206,7 @@ def ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos):
 		matriz[3][3] += ( fi_tres[i] * fi_tres[i] )
 		matriz[3][4] += ( fi_tres[i] * H[i] )
 
-	#método de Crout (descomposición LU)
+	#método de doolitle (descomposición LU)
 	#triangulación
 	m21 = ( matriz[1][0] / matriz[0][0] )
 	m31 = ( matriz[2][0] / matriz[0][0] )
@@ -266,6 +264,7 @@ def main():
 
 	ajuste_lineal(temperatura,variacion_iodo,cantidad_elementos)
 	ajuste_polinomial(temperatura,variacion_iodo,cantidad_elementos)
-	#ajuste_logistico(temperatura,variacion_iodo,cantidad_elementos)
-	ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos)
+	ajuste_logistico(temperatura,variacion_iodo,cantidad_elementos)
+	#ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos)
+
 main()
