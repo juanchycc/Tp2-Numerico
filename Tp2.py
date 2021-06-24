@@ -1,3 +1,4 @@
+from os import X_OK
 import numpy as np
 
 def leer_archivo():
@@ -164,6 +165,67 @@ def ajuste_logistico(temperatura,variacion_iodo,cantidad_elementos):
 	return error
 
 
+def ajuste_cuadratico_sin_linealizar(temperatura,variacion_iodo,cantidad_elementos):	
+	a = 190 # valores semilla
+	b = 10
+	c = 0.05
+	valores_funcion = funcion_sigmoidea(a,b,c,temperatura,variacion_iodo,cantidad_elementos)
+	jacobiano = obtener_jacobiano(a,b,c)
+	np.matrix(valores_funcion)
+	np.matrix(jacobiano)
+		
+	
+
+	return "hola"
+
+def funcion_sigmoidea(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
+	valores_funcion = [0,0,0]
+	for i in range(cantidad_elementos):
+		x = temperatura[i]
+		y = variacion_iodo[i]
+		valores_funcion[0] += 2*(y- a*np.e**(-b*np.e**(-c*x))) *  np.e**(-b*np.e**(-c*x)) *(-1)
+		valores_funcion[1] += 2*(y - a*np.e**(-b*np.e**(-c*x))) *  -a*np.e**((b-c*x)*-np.e**(-c*x)) *(-1)
+		valores_funcion[2] += 2*(y - a*np.e**(-b*np.e**(-c*x))) *	a*b*x*np.e**(-c*x-b*np.e**(-c*x)) *(-1)
+	
+	return valores_funcion
+
+def obtener_jacobiano(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
+	jacobiano = [[0,0,0],[0,0,0][0,0,0]]
+	for i in range(cantidad_elementos):
+		x = temperatura[i]
+		y = variacion_iodo[i]                
+		
+		jacobiano [0][0] =   2*np.e**(-2*b*np.e**(-c*x))                    #1
+		jacobiano [0][1] =  -2*(-y*np.e**(-c*x-b*np.e**(-c*x))+2*a*np.e**(-2*b*np.e**(-c*x))-c*x)    #2
+		jacobiano [0][2] =  -2*(-2*a*b*x*np.e**(-c*x-2*b*np.e**(-c*x))+y*x*b*np.e**(-c*x-b*np.e**(-c*x)))  #3
+		jacobiano [1][0] = 2*(y-2*a*np.e**(-b*np.e**(-c*x)))*np.e**(-b*np.e**(-c*x))                   #4
+		jacobiano [1][1] = 2*a*((-y**np.e**(-2*c*x-np.e**(-c*x)))+2*a*np.e**(-2*c*x-2*np.e**(-c*x)))                #5
+		jacobiano [1][2] = 2*a*(a*x*np.e**(-c*x-2*b*np.e**(-c*x))-2*a*b*x*np.e**(-2*c*x-2*b-np.e**(-c*x))+b*y*x*np.e**(-2*c*x-b*np.e**(-c*x))-y*x*np.e**(-c*x-b*np.e**(-c*x)))                       #6
+		jacobiano [2][0] = -2*b*(np.e**(-b*(np.e**(-c*x)-c*x))*x*(-2*(np.e**(-b*(np.e(-c*x)))*a)+y))                #7
+		jacobiano [2][1] = -2*a*x(2*a*(np.e**(-2*(np.e**(-c*x))*b-2*c*x)*b)-(np.e**((np.e**(-c*x))*b-(2*c*x)*y*b))-(a*(np.e**(-2*(np.e**(-c*x))*b-(c*x))))+(np.e**(-np.e**(-c*x))*b-(c*x)*y))))))
+		jacobiano [2][2] = -2*a*b*x*(a*np.e**(-2*b*np.e**(-c*x)-(c*x))*x)-((2*a*b*(np.e**(-2*b*(np.e**(-c*x))-(2*x))*x))+(b*(np.e**(-b*(np.e**(-c*x))-2*c*x)*y*x))-(np.e**(-b*(np.e**(-c*x)-c*x)*y*x)))     
+				
+	return jacobiano						
+
+		
+
+def obtener_jacobiano2(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
+	jacobiano = [[0,0,0],[0,0,0][0,0,0]]
+	for i in range(cantidad_elementos):
+		x = temperatura[i]
+		d = variacion_iodo[i]                
+		
+		jacobiano [0][0] =    2*np.e**(-2*b*np.e**(-c*x))  #1
+		jacobiano [0][1] =   -2*(-np.e**(-np.e**(-c*x)*b-c*x)*d+2*a*np.e**(-2*np.e**(-c*x)*b-c*x))  #2
+		jacobiano [0][2] =  -2*(-2*a*b*np.e**(-2*b*np.e**(-c*x)-c*x)*x+b*np.e**(-b*np.e**(-c*x)-c*x)*d*x) #3
+		jacobiano [1][0] =  2*np.e**(-b*np.e**(-c*x)-c*x)*(d-2*np.e**(-b*np.e**(-c*x))*a)   #4
+		jacobiano [1][1] =  2*a*(-np.e**(-np.e**(-c*x)*b-2*c*x)*d+2*a*np.e**(-2*np.e**(-c*x)*b-2*c*x))
+		jacobiano [1][2] =  2*a*(a*np.e**(-2*b*np.e**(-c*x)-c*x)*x-2*a*b*np.e**(-2*b*np.e**(-c*x)-2*c*x)*x+b*np.e**(-b*np.e**(-c*x)-2*c*x)*d*x-np.e**(-b*np.e**(-c*x)-c*x)*d*x)
+	    jacobiano [2][0] = -2*b*np.e**(-b*np.e**(-c*x)-c*x)*x*(-2*np.e**(-b*np.e**(-c*x))*a+d)
+		jacobiano [2][1] = -2*a*x*(2*a*np.e**(-2*np.e**(-c*x)*b-2*c*x)*b-np.e**(-np.e**(-c*x)*b-2*c*x)*d*b-a*np.e**(-2*np.e**(-c*x)*b-c*x)+np.e**(-np.e**(-c*x)*b-c*x)*d)		#8 nuevo
+		jacobiano [2][2] = -2*a*b*x*(a*np.e**(-2*b*np.e**(-c*x)-c*x)*x-2*a*b*np.e**(-2*b*np.e**(-c*x)-2*c*x)*x+b*np.e**(-b*np.e**(-c*x)-2*c*x)*d*x-np.e**(-b*np.e**(-c*x)-c*x)*d*x)  #9 nuevo
+
+	return jacobiano
 #item c
 def ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos):
 	fi_cero = []
@@ -262,9 +324,10 @@ def ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos):
 def main():
 	temperatura,variacion_iodo,cantidad_elementos = leer_archivo()
 
-	ajuste_lineal(temperatura,variacion_iodo,cantidad_elementos)
-	ajuste_polinomial(temperatura,variacion_iodo,cantidad_elementos)
-	ajuste_logistico(temperatura,variacion_iodo,cantidad_elementos)
+	#ajuste_lineal(temperatura,variacion_iodo,cantidad_elementos)
+	#ajuste_polinomial(temperatura,variacion_iodo,cantidad_elementos)
+	#ajuste_logistico(temperatura,variacion_iodo,cantidad_elementos)
+	ajuste_cuadratico_sin_linealizar(temperatura,variacion_iodo,cantidad_elementos)
 	#ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos)
 
 main()
