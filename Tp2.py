@@ -165,18 +165,43 @@ def ajuste_logistico(temperatura,variacion_iodo,cantidad_elementos):
 	return error
 
 
-def ajuste_cuadratico_sin_linealizar(temperatura,variacion_iodo,cantidad_elementos):	
-	a = 190 # valores semilla
-	b = 10
-	c = 0.05
-	valores_funcion = funcion_sigmoidea(a,b,c,temperatura,variacion_iodo,cantidad_elementos)
-	jacobiano = obtener_jacobiano(a,b,c)
-	np.matrix(valores_funcion)
-	np.matrix(jacobiano)
+def ajuste_cuadratico_sin_linealizar(temperatura,variacion_iodo,cantidad_elementos):
+	#solucion1 = np.matrix([[190],[10],[0.05]])
+	solucion2 = np.matrix([[190],[10],[0.05]])
+	for i in range(10):
+		'''
+		a1 = float(solucion1[0][0]) 
+		b1 = float(solucion1[1][0])
+		c1 = float(solucion1[2][0])
+		valores_funcion1 = funcion_sigmoidea(a1,b1,c1,temperatura,variacion_iodo,cantidad_elementos)
+		jacobiano = obtener_jacobiano(a1,b1,c1,temperatura,variacion_iodo,cantidad_elementos)
+		valores_funcion1 = np.matrix([[valores_funcion1[0]],[valores_funcion1[1]],[valores_funcion1[2]]])
+		jacobiano = np.matrix(jacobiano)
+		delta1 = (jacobiano**-1)*(valores_funcion1*-1)
+		vieja_solucion_1 = solucion1
+		solucion1 = vieja_solucion_1 + delta1
+		'''
+		a2 = float(solucion2[0][0])		
+		b2 = float(solucion2[1][0])
+		c2 = float(solucion2[2][0])
 		
-	
+		valores_funcion2 = funcion_sigmoidea(a2,b2,c2,temperatura,variacion_iodo,cantidad_elementos)
+		jacobiano2 = obtener_jacobiano2(a2,b2,c2,temperatura,variacion_iodo,cantidad_elementos)
+		jacobiano2 = np.matrix(jacobiano2)
+		valores_funcion2 = np.matrix([[valores_funcion2[0]],[valores_funcion2[1]],[valores_funcion2[2]]])
+		delta2 = (jacobiano2**-1)*(valores_funcion2*-1)
+		vieja_solucion_2 = solucion2
+		
+		solucion2 = vieja_solucion_2 + delta2
+		a = float(solucion2[0][0]) 
+		b = float(solucion2[1][0])
+		c = float(solucion2[2][0])
+		print(funcion_sigmoidea(a,b,c,temperatura,variacion_iodo,cantidad_elementos))
+		
+		print(i)
 
-	return "hola"
+		
+	return 0
 
 def funcion_sigmoidea(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
 	valores_funcion = [0,0,0]
@@ -190,7 +215,7 @@ def funcion_sigmoidea(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
 	return valores_funcion
 
 def obtener_jacobiano(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
-	jacobiano = [[0,0,0],[0,0,0][0,0,0]]
+	jacobiano = [[0,0,0],[0,0,0],[0,0,0]]
 	for i in range(cantidad_elementos):
 		x = temperatura[i]
 		y = variacion_iodo[i]                
@@ -201,8 +226,8 @@ def obtener_jacobiano(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
 		jacobiano [1][0] = 2*(y-2*a*np.e**(-b*np.e**(-c*x)))*np.e**(-b*np.e**(-c*x))                   #4
 		jacobiano [1][1] = 2*a*((-y**np.e**(-2*c*x-np.e**(-c*x)))+2*a*np.e**(-2*c*x-2*np.e**(-c*x)))                #5
 		jacobiano [1][2] = 2*a*(a*x*np.e**(-c*x-2*b*np.e**(-c*x))-2*a*b*x*np.e**(-2*c*x-2*b-np.e**(-c*x))+b*y*x*np.e**(-2*c*x-b*np.e**(-c*x))-y*x*np.e**(-c*x-b*np.e**(-c*x)))                       #6
-		jacobiano [2][0] = -2*b*(np.e**(-b*(np.e**(-c*x)-c*x))*x*(-2*(np.e**(-b*(np.e(-c*x)))*a)+y))                #7
-		jacobiano [2][1] = -2*a*x(2*a*(np.e**(-2*(np.e**(-c*x))*b-2*c*x)*b)-(np.e**((np.e**(-c*x))*b-(2*c*x)*y*b))-(a*(np.e**(-2*(np.e**(-c*x))*b-(c*x))))+(np.e**(-np.e**(-c*x))*b-(c*x)*y))))))
+		jacobiano [2][0] = -2*b*(np.e**(-b*(np.e**(-c*x)-c*x))*x*(-2*(np.e**(-b*(np.e**(-c*x)))*a)+y))                #7
+		jacobiano [2][1] = -2*a*x*(2*a*(np.e**(-2*(np.e**(-c*x))*b-2*c*x)*b)-(np.e**((np.e**(-c*x))*b-(2*c*x)*y*b))-(a*(np.e**(-2*(np.e**(-c*x))*b-(c*x))))+(np.e**(-1*np.e**(-c*x))*b-(c*x)*y))
 		jacobiano [2][2] = -2*a*b*x*(a*np.e**(-2*b*np.e**(-c*x)-(c*x))*x)-((2*a*b*(np.e**(-2*b*(np.e**(-c*x))-(2*x))*x))+(b*(np.e**(-b*(np.e**(-c*x))-2*c*x)*y*x))-(np.e**(-b*(np.e**(-c*x)-c*x)*y*x)))     
 				
 	return jacobiano						
@@ -210,7 +235,7 @@ def obtener_jacobiano(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
 		
 
 def obtener_jacobiano2(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
-	jacobiano = [[0,0,0],[0,0,0][0,0,0]]
+	jacobiano = [[0,0,0],[0,0,0],[0,0,0]]
 	for i in range(cantidad_elementos):
 		x = temperatura[i]
 		d = variacion_iodo[i]                
@@ -221,11 +246,19 @@ def obtener_jacobiano2(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
 		jacobiano [1][0] =  2*np.e**(-b*np.e**(-c*x)-c*x)*(d-2*np.e**(-b*np.e**(-c*x))*a)   #4
 		jacobiano [1][1] =  2*a*(-np.e**(-np.e**(-c*x)*b-2*c*x)*d+2*a*np.e**(-2*np.e**(-c*x)*b-2*c*x))
 		jacobiano [1][2] =  2*a*(a*np.e**(-2*b*np.e**(-c*x)-c*x)*x-2*a*b*np.e**(-2*b*np.e**(-c*x)-2*c*x)*x+b*np.e**(-b*np.e**(-c*x)-2*c*x)*d*x-np.e**(-b*np.e**(-c*x)-c*x)*d*x)
-	    jacobiano [2][0] = -2*b*np.e**(-b*np.e**(-c*x)-c*x)*x*(-2*np.e**(-b*np.e**(-c*x))*a+d)
+		jacobiano [2][0] = -2*b*np.e**(-b*np.e**(-c*x)-c*x)*x*(-2*np.e**(-b*np.e**(-c*x))*a+d)
 		jacobiano [2][1] = -2*a*x*(2*a*np.e**(-2*np.e**(-c*x)*b-2*c*x)*b-np.e**(-np.e**(-c*x)*b-2*c*x)*d*b-a*np.e**(-2*np.e**(-c*x)*b-c*x)+np.e**(-np.e**(-c*x)*b-c*x)*d)		#8 nuevo
 		jacobiano [2][2] = -2*a*b*x*(a*np.e**(-2*b*np.e**(-c*x)-c*x)*x-2*a*b*np.e**(-2*b*np.e**(-c*x)-2*c*x)*x+b*np.e**(-b*np.e**(-c*x)-2*c*x)*d*x-np.e**(-b*np.e**(-c*x)-c*x)*d*x)  #9 nuevo
 
 	return jacobiano
+
+def printear_matriz(matriz): # es solo para printear ordenadamente
+	for i in range(len(matriz)):
+		for j in range(len(matriz[0])):
+			print(matriz[i][j],end=" ")
+		print()
+
+
 #item c
 def ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos):
 	fi_cero = []
