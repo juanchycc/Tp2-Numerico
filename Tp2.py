@@ -1,5 +1,6 @@
 from os import X_OK
 import numpy as np
+import matplotlib.pyplot as plt
 
 #funciones auxiliares
 def leer_archivo(nombre_archivo):
@@ -191,7 +192,7 @@ def ajuste_cuadratico_sin_linealizar(temperatura,variacion_iodo,cantidad_element
 		contador += 1
 
 		print(contador)
-	return 0
+	return solucion2
 
 def funcion_sigmoidea(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
 	valores_funcion = [0,0,0]
@@ -363,6 +364,18 @@ def resolver_sistema(L,U,B,cantidad_digitos):
 	X[0] = round(( round(( Y[0] - round(( U[0][3] * X[3] ),cantidad_digitos) - round(( U[0][2] * X[2] ),cantidad_digitos) - round(( U[0][1] * X[1] ),cantidad_digitos) ),cantidad_digitos) / U[0][0]),cantidad_digitos)
 	return X
 
+
+def graficar(sigmoidea,temperatura,variacion_iodo):
+	a = float(sigmoidea[0][0]) 
+	b = float(sigmoidea[1][0])
+	c = float(sigmoidea[2][0])
+	plt.figure(dpi = 125)
+	plt.scatter(temperatura,variacion_iodo)
+	temperatura = np.arange(20,60,0.1)
+	plt.plot(temperatura,a*np.e**(-b*np.e**(-c*temperatura)))
+	plt.show()
+
+
 def main():
 
 	tolerancia = 0.00000001 # (item b)
@@ -374,8 +387,12 @@ def main():
 	ajuste_lineal(temperatura,variacion_iodo_achicada,cantidad_elementos)
 	ajuste_polinomial(temperatura,variacion_iodo_achicada,cantidad_elementos)
 	ajuste_logistico(temperatura,variacion_iodo_achicada,cantidad_elementos)
-	ajuste_cuadratico_sin_linealizar(temperatura,variacion_iodo,cantidad_elementos,tolerancia)
+	parametros = ajuste_cuadratico_sin_linealizar(temperatura,variacion_iodo,cantidad_elementos,tolerancia)
 	ajuste_polinomial_tres(temperatura,variacion_iodo_achicada,cantidad_elementos)
+	graficar(parametros,temperatura,variacion_iodo)
+	
+
+
 
 	temperatura,variacion_iodo,cantidad_elementos = leer_archivo("data_01.txt")
 	variacion_iodo_achicada = []
