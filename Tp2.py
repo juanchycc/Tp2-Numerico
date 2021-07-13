@@ -223,12 +223,27 @@ def obtener_jacobiano2(a,b,c,temperatura,variacion_iodo,cantidad_elementos):
 
 	return jacobiano
 
+def graficarpoli(poli,temperatura,variacion_iodo, titulo):
+	a = float(poli[0]) 
+	b = float(poli[1])
+	c = float(poli[2])
+	d = float(poli[3])
+	print(a,b,c,d)
+	print(poli)
+	plt.figure(dpi = 125)
+	plt.scatter(temperatura,variacion_iodo)
+	temperatura = np.arange(20,60,0.1)
+	plt.plot(temperatura,a + b*temperatura + c*temperatura**2 + d*temperatura**3 )
+	plt.title(titulo + "- DataSet1")
+	plt.show()
+
 #item c
 def ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos):
 	fi_cero = []
 	fi_uno = temperatura
 	fi_dos = []
 	fi_tres = []
+	B = [0,0,0,0]
 	H = variacion_iodo
 	filas = 4
 	columnas = 4
@@ -237,6 +252,10 @@ def ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos):
 		fi_cero.append(1)
 		fi_dos.append( ( fi_uno[i] * fi_uno[i] ) )
 		fi_tres.append( ( fi_dos[i] * fi_uno[i] ) )
+		B[0] = (B[0] + (fi_cero[i] * H[i]))
+		B[1] = B[1] + (fi_uno[i] * H[i])
+		B[2] = B[2] + (fi_dos[i] * H[i])
+		B[3] = B[3] + (fi_tres[i] * H[i])
 
 	A = inicializar_matriz(filas,columnas)
 
@@ -267,11 +286,16 @@ def ajuste_polinomial_tres(temperatura,variacion_iodo,cantidad_elementos):
 		for j in range(columnas):
 			aux1[i][j] = A[i][j]
 			aux2[i][j] = A[i][j]
-
+	'''
 	print(factorizacion_doolitle(aux1,H,3,columnas))
 	print(factorizacion_crout(A,H,3,columnas))
 	print(factorizacion_doolitle(aux2,H,6,columnas))
 	print(factorizacion_crout(A,H,6,columnas))
+	'''
+	graficarpoli(factorizacion_doolitle(aux1,B,3,columnas), temperatura, variacion_iodo,"Doolitle 3 de precision")
+	graficarpoli(factorizacion_crout(A,B,3,columnas), temperatura, variacion_iodo,"Crout 3 de precision")
+	graficarpoli(factorizacion_doolitle(aux2,B,6,columnas), temperatura, variacion_iodo,"Doolitle 6 de precision")
+	graficarpoli(factorizacion_crout(A,B,6,columnas), temperatura, variacion_iodo,"Crout 6 de precision")
 
 def factorizacion_crout(A,B,cantidad_digitos,columna):
 	#resuelvo las ecuaciones para obtener L y U	
@@ -317,26 +341,25 @@ def factorizacion_doolitle(A,B,cantidad_digitos,columna):
 	m41 = round(( A[3][0] / A[0][0] ),cantidad_digitos)
 
 	for i in range(columna):
-		A[1][i] = round(( round(( A[0][i] * m21 ),cantidad_digitos) - A[1][i] ),cantidad_digitos)
-		A[2][i] = round(( round(( A[0][i] * m31 ),cantidad_digitos) - A[2][i] ),cantidad_digitos)
-		A[3][i] = round(( round(( A[0][i] * m41 ),cantidad_digitos) - A[3][i] ),cantidad_digitos)
+		A[1][i] = round(( A[1][i] - round(( A[0][i] * m21 ),cantidad_digitos) ),cantidad_digitos)
+		A[2][i] = round((  A[2][i] - round(( A[0][i] * m31 ),cantidad_digitos) ),cantidad_digitos)
+		A[3][i] = round((  A[3][i] - round(( A[0][i] * m41 ),cantidad_digitos) ),cantidad_digitos)
 		
 	m32 = round(( A[2][1] / A[1][1] ),cantidad_digitos)
 	m42 = round(( A[3][1] / A[1][1] ),cantidad_digitos)
 
 	x = 1
 	for x in range(columna):
-		A[2][x] = round(( round(( A[1][x] * m32 ),cantidad_digitos) - A[2][x] ),cantidad_digitos)
-		A[3][x] = round(( round(( A[1][x] * m42 ),cantidad_digitos) - A[3][x] ),cantidad_digitos)
+		A[2][x] = round((  A[2][x] - round(( A[1][x] * m32 ),cantidad_digitos)),cantidad_digitos)
+		A[3][x] = round((  A[3][x] - round(( A[1][x] * m42 ),cantidad_digitos) ),cantidad_digitos)
 
 	m43 = round(( A[3][2] / A[2][2]),cantidad_digitos)
 	x = 2
 	for x in range(columna):
-		A[3][x] = round(( round(( A[2][x] * m43 ),cantidad_digitos) - A[3][x] ),cantidad_digitos)
+		A[3][x] = round((  A[3][x] - round(( A[2][x] * m43 ),cantidad_digitos) ),cantidad_digitos)
 
 	L = inicializar_matriz(4,4)
 	U = A
-
 	L[0][0] = 1
 	L[1][0] = m21
 	L[1][1] = 1
@@ -350,6 +373,7 @@ def factorizacion_doolitle(A,B,cantidad_digitos,columna):
 	return resolver_sistema(L,U,B,cantidad_digitos)
 
 def resolver_sistema(L,U,B,cantidad_digitos):
+
 	#  L . Y = b
 	Y = [0,0,0,0]
 	Y[0] = round(( B[0] / L[0][0] ),cantidad_digitos)
@@ -362,6 +386,7 @@ def resolver_sistema(L,U,B,cantidad_digitos):
 	X[2] = round(( round(( Y[2] - round(( U[2][3] * X[3] ),cantidad_digitos) ),cantidad_digitos) / U[2][2] ),cantidad_digitos)
 	X[1] = round(( round(( Y[1] - round(( U[1][3] * X[3] ),cantidad_digitos) - round(( U[1][2] * X[2] ),cantidad_digitos) ),cantidad_digitos) / U[1][1] ),cantidad_digitos)
 	X[0] = round(( round(( Y[0] - round(( U[0][3] * X[3] ),cantidad_digitos) - round(( U[0][2] * X[2] ),cantidad_digitos) - round(( U[0][1] * X[1] ),cantidad_digitos) ),cantidad_digitos) / U[0][0]),cantidad_digitos)
+
 	return X
 
 
@@ -383,17 +408,19 @@ def main():
 	variacion_iodo_achicada = []
 	for i in range(cantidad_elementos):
 		variacion_iodo_achicada.append( variacion_iodo[i] / 1000 )
-
+		'''
 	ajuste_lineal(temperatura,variacion_iodo_achicada,cantidad_elementos)
 	ajuste_polinomial(temperatura,variacion_iodo_achicada,cantidad_elementos)
 	ajuste_logistico(temperatura,variacion_iodo_achicada,cantidad_elementos)
+
 	parametros = ajuste_cuadratico_sin_linealizar(temperatura,variacion_iodo,cantidad_elementos,tolerancia)
+	'''
 	ajuste_polinomial_tres(temperatura,variacion_iodo_achicada,cantidad_elementos)
-	graficar(parametros,temperatura,variacion_iodo)
+	#graficar(parametros,temperatura,variacion_iodo)
 	
 
 
-
+'''
 	temperatura,variacion_iodo,cantidad_elementos = leer_archivo("data_01.txt")
 	variacion_iodo_achicada = []
 	for i in range(cantidad_elementos):
@@ -404,5 +431,5 @@ def main():
 	ajuste_logistico(temperatura,variacion_iodo_achicada,cantidad_elementos)
 	ajuste_cuadratico_sin_linealizar(temperatura,variacion_iodo,cantidad_elementos,tolerancia)
 	ajuste_polinomial_tres(temperatura,variacion_iodo_achicada,cantidad_elementos)
-	
+	'''
 main()
